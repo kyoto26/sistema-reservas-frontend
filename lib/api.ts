@@ -210,6 +210,28 @@ export async function cancelReservation(id: string): Promise<void> {
   }
 }
 
+export async function payReservation(id: string): Promise<void> {
+  const token = getToken();
+  if (!token) {
+    throw new UnauthorizedError("No autenticado");
+  }
+
+  const res = await fetch(`${API_URL}/reservations/${id}/pay`, {
+    method: "PATCH",
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+  if (res.status === 401) {
+    clearToken();
+    throw new UnauthorizedError("Tu sesión expiró, iniciá sesión de nuevo");
+  }
+
+  if (!res.ok) {
+    const data: { message?: string } | null = await res.json().catch(() => null);
+    throw new Error(data?.message ?? "No se pudo procesar el pago");
+  }
+}
+
 export async function rescheduleReservation(
   id: string,
   startTime: string,
@@ -273,4 +295,101 @@ export async function getAllReservations(): Promise<AdminReservation[]> {
   }
 
   return res.json();
+}
+
+export async function createCourt(input: {
+  name: string;
+  sportType: string;
+  pricePerHour: number;
+}): Promise<Court> {
+  const token = getToken();
+  if (!token) {
+    throw new UnauthorizedError("No autenticado");
+  }
+
+  const res = await fetch(`${API_URL}/courts`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(input),
+  });
+
+  if (res.status === 401) {
+    clearToken();
+    throw new UnauthorizedError("Tu sesión expiró, iniciá sesión de nuevo");
+  }
+
+  if (res.status === 403) {
+    throw new ForbiddenError("No tenés permisos de administrador");
+  }
+
+  if (!res.ok) {
+    const data: { message?: string } | null = await res.json().catch(() => null);
+    throw new Error(data?.message ?? "No se pudo crear la cancha");
+  }
+
+  return res.json();
+}
+
+export async function updateCourt(
+  id: string,
+  input: Partial<{ name: string; sportType: string; pricePerHour: number }>,
+): Promise<Court> {
+  const token = getToken();
+  if (!token) {
+    throw new UnauthorizedError("No autenticado");
+  }
+
+  const res = await fetch(`${API_URL}/courts/${id}`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(input),
+  });
+
+  if (res.status === 401) {
+    clearToken();
+    throw new UnauthorizedError("Tu sesión expiró, iniciá sesión de nuevo");
+  }
+
+  if (res.status === 403) {
+    throw new ForbiddenError("No tenés permisos de administrador");
+  }
+
+  if (!res.ok) {
+    const data: { message?: string } | null = await res.json().catch(() => null);
+    throw new Error(data?.message ?? "No se pudo actualizar la cancha");
+  }
+
+  return res.json();
+}
+
+export async function deleteCourt(id: string): Promise<void> {
+  const token = getToken();
+  if (!token) {
+    throw new UnauthorizedError("No autenticado");
+  }
+
+  const res = await fetch(`${API_URL}/courts/${id}`, {
+    method: "DELETE",
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+  if (res.status === 401) {
+    clearToken();
+    throw new UnauthorizedError("Tu sesión expiró, iniciá sesión de nuevo");
+  }
+
+  if (res.status === 403) {
+    throw new ForbiddenError("No tenés permisos de administrador");
+  }
+
+  if (!res.ok) {
+    const data: { message?: string } | null = await res.json().catch(() => null);
+    throw new Error(data?.message ?? "No se pudo eliminar la cancha");
+  }
 }

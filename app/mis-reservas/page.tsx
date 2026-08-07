@@ -6,6 +6,7 @@ import {
   cancelReservation,
   getMyReservations,
   isLoggedIn,
+  payReservation,
   rescheduleReservation,
   subscribeToAuthChanges,
   UnauthorizedError,
@@ -129,6 +130,27 @@ export default function MisReservasPage() {
     }
   }
 
+  async function handlePay(id: string) {
+    setActionLoadingId(id);
+    setRowError(null);
+
+    try {
+      await payReservation(id);
+      await loadReservations();
+    } catch (err) {
+      if (err instanceof UnauthorizedError) {
+        router.replace("/login");
+        return;
+      }
+      setRowError({
+        id,
+        message: err instanceof Error ? err.message : "No se pudo procesar el pago",
+      });
+    } finally {
+      setActionLoadingId(null);
+    }
+  }
+
   function openReschedule(reservation: Reservation) {
     const start = new Date(reservation.startTime);
     const end = new Date(reservation.endTime);
@@ -228,6 +250,17 @@ export default function MisReservasPage() {
 
               {reservation.status !== "cancelled" && (
                 <div className="mt-4 flex gap-3">
+                  {reservation.status === "confirmed" &&
+                    reservation.paymentStatus === "pending" && (
+                      <button
+                        type="button"
+                        onClick={() => handlePay(reservation.id)}
+                        disabled={actionLoadingId === reservation.id}
+                        className="rounded-full bg-emerald-700 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-emerald-800 disabled:opacity-60"
+                      >
+                        {actionLoadingId === reservation.id ? "Pagando..." : "Pagar"}
+                      </button>
+                    )}
                   <button
                     type="button"
                     onClick={() => openReschedule(reservation)}

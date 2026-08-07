@@ -2,19 +2,18 @@
 
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
-import {
-  ForbiddenError,
-  getAllReservations,
-  isAdmin,
-  subscribeToAuthChanges,
-  UnauthorizedError,
-  type AdminReservation,
-} from "@/lib/api";
-import { STATUS_LABEL, formatRange } from "@/lib/format";
+import { isAdmin, subscribeToAuthChanges } from "@/lib/api";
+import ReservationsTab from "./_components/ReservationsTab";
+import CourtsTab from "./_components/CourtsTab";
 
 function getServerSnapshot() {
   return false;
 }
+
+const TABS = [
+  { key: "reservations", label: "Reservas" },
+  { key: "courts", label: "Canchas" },
+] as const;
 
 export default function AdminPage() {
   const router = useRouter();
@@ -23,81 +22,40 @@ export default function AdminPage() {
     isAdmin,
     getServerSnapshot,
   );
-
-  const [reservations, setReservations] = useState<AdminReservation[] | null>(null);
-  const [loadError, setLoadError] = useState<string | null>(null);
+  const [tab, setTab] = useState<(typeof TABS)[number]["key"]>("reservations");
 
   useEffect(() => {
     if (!admin) {
       router.replace("/");
-      return;
     }
-
-    let cancelled = false;
-
-    (async () => {
-      try {
-        const data = await getAllReservations();
-        if (cancelled) return;
-        setReservations(data);
-        setLoadError(null);
-      } catch (err) {
-        if (cancelled) return;
-        if (err instanceof UnauthorizedError || err instanceof ForbiddenError) {
-          router.replace("/");
-          return;
-        }
-        setLoadError(
-          err instanceof Error ? err.message : "No se pudieron cargar las reservas",
-        );
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
   }, [admin, router]);
+
+  if (!admin) {
+    return null;
+  }
 
   return (
     <main className="flex-1 px-6 py-10">
       <h1 className="text-2xl font-semibold">Panel de administración</h1>
 
-      {loadError && <p className="mt-6 text-sm text-red-600">{loadError}</p>}
+      <div className="mt-6 flex gap-2 border-b border-zinc-200 dark:border-zinc-800">
+        {TABS.map((t) => (
+          <button
+            key={t.key}
+            type="button"
+            onClick={() => setTab(t.key)}
+            className={`-mb-px border-b-2 px-4 py-2 text-sm font-medium transition-colors ${
+              tab === t.key
+                ? "border-emerald-700 text-emerald-700"
+                : "border-transparent text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300"
+            }`}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
 
-      {!loadError && reservations === null && (
-        <p className="mt-6 text-zinc-500">Cargando reservas...</p>
-      )}
-
-      {!loadError && reservations !== null && reservations.length === 0 && (
-        <p className="mt-6 text-zinc-500">No hay reservas registradas.</p>
-      )}
-
-      {!loadError && reservations !== null && reservations.length > 0 && (
-        <ul className="mt-6 space-y-4">
-          {reservations.map((reservation) => (
-            <li
-              key={reservation.id}
-              className="rounded-xl border border-zinc-200 p-5 dark:border-zinc-800"
-            >
-              <div className="flex flex-wrap items-start justify-between gap-3">
-                <div>
-                  <h2 className="text-lg font-semibold">{reservation.court.name}</h2>
-                  <p className="text-sm text-zinc-500">
-                    {reservation.user.name} · {reservation.user.email}
-                  </p>
-                  <p className="text-sm text-zinc-500">
-                    {formatRange(reservation.startTime, reservation.endTime)}
-                  </p>
-                </div>
-
-                <span className="rounded-full bg-zinc-100 px-3 py-1 text-xs font-medium dark:bg-zinc-800">
-                  {STATUS_LABEL[reservation.status] ?? reservation.status}
-                </span>
-              </div>
-            </li>
-          ))}
-        </ul>
-      )}
+      {tab === "reservations" ? <ReservationsTab /> : <CourtsTab />}
     </main>
   );
 }
