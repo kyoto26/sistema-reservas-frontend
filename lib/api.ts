@@ -44,7 +44,7 @@ export function subscribeToAuthChanges(callback: () => void): () => void {
   };
 }
 
-function decodeJwtPayload(token: string): { exp: number } | null {
+function decodeJwtPayload(token: string): { exp: number; role: string } | null {
   try {
     const [, payload] = token.split(".");
     const json = atob(payload.replace(/-/g, "+").replace(/_/g, "/"));
@@ -65,6 +65,19 @@ export function isLoggedIn(): boolean {
   }
 
   return true;
+}
+
+export function isAdmin(): boolean {
+  const token = getToken();
+  if (!token) return false;
+
+  const payload = decodeJwtPayload(token);
+  if (!payload || payload.exp * 1000 <= Date.now()) {
+    clearToken();
+    return false;
+  }
+
+  return payload.role === "admin";
 }
 
 export async function login(email: string, password: string): Promise<void> {
@@ -103,6 +116,7 @@ export async function register(
 }
 
 export class UnauthorizedError extends Error {}
+export class ForbiddenError extends Error {}
 
 export type Reservation = {
   id: string;
@@ -228,4 +242,35 @@ export async function rescheduleReservation(
     const data: { message?: string } | null = await res.json().catch(() => null);
     throw new Error(data?.message ?? "No se pudo reagendar la reserva");
   }
+}
+
+export type AdminReservation = Reservation & {
+  user: { id: string; name: string; email: string; role: string };
+};
+
+export async function getAllReservations(): Promise<AdminReservation[]> {
+  const token = getToken();
+  if (!token) {
+    throw new UnauthorizedError("No autenticado");
+  }
+
+  const res = await fetch(`${API_URL}/reservations/all`, {
+    headers: { Authorization: `Bearer ${token}` },
+    cache: "no-store",
+  });
+
+  if (res.status === 401) {
+    clearToken();
+    throw new UnauthorizedError("Tu sesión expiró, iniciá sesión de nuevo");
+  }
+
+  if (res.status === 403) {
+    throw new ForbiddenError("No tenés permisos de administrador");
+  }
+
+  if (!res.ok) {
+    throw new Error("No se pudieron cargar las reservas");
+  }
+
+  return res.json();
 }

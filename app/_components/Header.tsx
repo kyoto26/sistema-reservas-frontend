@@ -3,7 +3,7 @@
 import { useSyncExternalStore } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { clearToken, isLoggedIn, subscribeToAuthChanges } from "@/lib/api";
+import { clearToken, isAdmin, isLoggedIn, subscribeToAuthChanges } from "@/lib/api";
 
 function getServerSnapshot() {
   return false;
@@ -14,6 +14,11 @@ export default function Header() {
   const loggedIn = useSyncExternalStore(
     subscribeToAuthChanges,
     isLoggedIn,
+    getServerSnapshot,
+  );
+  const admin = useSyncExternalStore(
+    subscribeToAuthChanges,
+    isAdmin,
     getServerSnapshot,
   );
 
@@ -36,6 +41,14 @@ export default function Header() {
             >
               Mis reservas
             </Link>
+            {admin && (
+              <Link
+                href="/admin"
+                className="rounded-full px-4 py-2 text-zinc-700 transition-colors hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800"
+              >
+                Admin
+              </Link>
+            )}
             <button
               type="button"
               onClick={handleLogout}
