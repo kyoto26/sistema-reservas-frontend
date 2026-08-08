@@ -1,4 +1,5 @@
 import { getCourts } from "@/lib/api";
+import { groupCourtsByType } from "@/lib/courtTypes";
 import CourtCard from "./_components/CourtCard";
 
 export default async function Home() {
@@ -10,6 +11,8 @@ export default async function Home() {
   } catch {
     error = true;
   }
+
+  const groups = groupCourtsByType(courts);
 
   return (
     <main className="flex-1 px-6 py-10">
@@ -29,8 +32,14 @@ export default async function Home() {
 
       {!error && courts.length > 0 && (
         <ul className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {courts.map((court) => (
-            <CourtCard key={court.id} court={court} />
+          {groups.map((group) => (
+            <CourtCard
+              key={group.sportType}
+              typeLabel={group.info.label}
+              lengthM={group.info.lengthM}
+              widthM={group.info.widthM}
+              courts={group.courts}
+            />
           ))}
         </ul>
       )}

@@ -8,6 +8,8 @@ import {
   UnauthorizedError,
   type Court,
 } from "@/lib/api";
+import { instanceLabel } from "@/lib/courtTypes";
+import PitchDiagram from "./PitchDiagram";
 
 const PETOS_OPTIONS = [
   { value: "none", label: "Sin petos" },
@@ -15,8 +17,21 @@ const PETOS_OPTIONS = [
   { value: "blue", label: "Petos azules" },
 ] as const;
 
-export default function CourtCard({ court }: { court: Court }) {
+export default function CourtCard({
+  typeLabel,
+  lengthM,
+  widthM,
+  courts,
+}: {
+  typeLabel: string;
+  lengthM: number;
+  widthM: number;
+  courts: Court[];
+}) {
   const router = useRouter();
+  const [selectedIndex, setSelectedIndex] = useState(0);
+  const court = courts[selectedIndex];
+
   const [modalOpen, setModalOpen] = useState(false);
   const [date, setDate] = useState("");
   const [startTime, setStartTime] = useState("");
@@ -80,20 +95,42 @@ export default function CourtCard({ court }: { court: Court }) {
   }
 
   return (
-    <li className="rounded-xl border border-brand-red/30 p-5">
-      <h2 className="font-heading text-xl">{court.name}</h2>
-      <p className="text-sm text-zinc-500">{court.sportType}</p>
-      <p className="mt-3 font-medium">
-        ${Number(court.pricePerHour).toLocaleString("es-CO")} / hora
-      </p>
+    <li className="overflow-hidden rounded-xl border border-brand-red/30">
+      <PitchDiagram lengthM={lengthM} widthM={widthM} className="block w-full" />
 
-      <button
-        type="button"
-        onClick={handleReservarClick}
-        className="mt-4 w-full rounded-full bg-brand-red px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-red/85"
-      >
-        Reservar
-      </button>
+      <div className="p-5">
+        <h2 className="font-heading text-xl">{typeLabel}</h2>
+        <p className="mt-3 font-medium">
+          ${Number(court.pricePerHour).toLocaleString("es-CO")} / hora
+        </p>
+
+        {courts.length > 1 && (
+          <div className="mt-3 flex flex-wrap gap-2">
+            {courts.map((c, i) => (
+              <button
+                key={c.id}
+                type="button"
+                onClick={() => setSelectedIndex(i)}
+                className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+                  i === selectedIndex
+                    ? "bg-brand-red text-white"
+                    : "border border-zinc-700 text-zinc-300 hover:bg-white/10"
+                }`}
+              >
+                {instanceLabel(c, typeLabel, i)}
+              </button>
+            ))}
+          </div>
+        )}
+
+        <button
+          type="button"
+          onClick={handleReservarClick}
+          className="mt-4 w-full rounded-full bg-brand-red px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-red/85"
+        >
+          Reservar
+        </button>
+      </div>
 
       {modalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-6">
