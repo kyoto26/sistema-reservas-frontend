@@ -28,8 +28,8 @@ export default function Header() {
   }
 
   return (
-    <header className="flex items-center justify-between border-b border-zinc-200 px-6 py-4 dark:border-zinc-800">
-      <Link href="/" className="text-lg font-semibold">
+    <header className="flex items-center justify-between border-b border-brand-red/30 bg-brand-black px-6 py-4">
+      <Link href="/" className="font-heading text-2xl text-white">
         Sistema de Reservas
       </Link>
       <nav className="flex items-center gap-3 text-sm font-medium">
@@ -37,14 +37,14 @@ export default function Header() {
           <>
             <Link
               href="/mis-reservas"
-              className="rounded-full px-4 py-2 text-zinc-700 transition-colors hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800"
+              className="rounded-full px-4 py-2 text-zinc-300 transition-colors hover:bg-white/10"
             >
               Mis reservas
             </Link>
             {admin && (
               <Link
                 href="/admin"
-                className="rounded-full px-4 py-2 text-zinc-700 transition-colors hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800"
+                className="rounded-full px-4 py-2 text-zinc-300 transition-colors hover:bg-white/10"
               >
                 Admin
               </Link>
@@ -52,7 +52,7 @@ export default function Header() {
             <button
               type="button"
               onClick={handleLogout}
-              className="rounded-full px-4 py-2 text-zinc-700 transition-colors hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800"
+              className="rounded-full px-4 py-2 text-zinc-300 transition-colors hover:bg-white/10"
             >
               Cerrar sesión
             </button>
@@ -61,13 +61,13 @@ export default function Header() {
           <>
             <Link
               href="/login"
-              className="rounded-full px-4 py-2 text-zinc-700 transition-colors hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800"
+              className="rounded-full px-4 py-2 text-zinc-300 transition-colors hover:bg-white/10"
             >
               Iniciar sesión
             </Link>
             <Link
               href="/registro"
-              className="rounded-full bg-emerald-700 px-4 py-2 text-white transition-colors hover:bg-emerald-800"
+              className="rounded-full bg-brand-red px-4 py-2 text-white transition-colors hover:bg-brand-red/85"
             >
               Registrarse
             </Link>

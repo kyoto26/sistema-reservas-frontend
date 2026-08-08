@@ -85,14 +85,14 @@ export default function RegistroPage() {
         <button
           type="submit"
           disabled={loading}
-          className="w-full rounded-full bg-emerald-700 px-5 py-2.5 font-medium text-white transition-colors hover:bg-emerald-800 disabled:opacity-60"
+          className="w-full rounded-full bg-brand-red px-5 py-2.5 font-medium text-white transition-colors hover:bg-brand-red/85 disabled:opacity-60"
         >
           {loading ? "Registrando..." : "Registrarse"}
         </button>
 
         <p className="text-center text-sm text-zinc-500">
           ¿Ya tenés cuenta?{" "}
-          <Link href="/login" className="font-medium text-emerald-700">
+          <Link href="/login" className="font-medium text-brand-red">
             Iniciá sesión
           </Link>
         </p>

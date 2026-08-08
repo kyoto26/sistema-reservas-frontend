@@ -46,7 +46,7 @@ export default function AdminPage() {
             onClick={() => setTab(t.key)}
             className={`-mb-px border-b-2 px-4 py-2 text-sm font-medium transition-colors ${
               tab === t.key
-                ? "border-emerald-700 text-emerald-700"
+                ? "border-brand-red text-brand-red"
                 : "border-transparent text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300"
             }`}
           >

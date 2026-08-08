@@ -80,8 +80,8 @@ export default function CourtCard({ court }: { court: Court }) {
   }
 
   return (
-    <li className="rounded-xl border border-zinc-200 p-5 dark:border-zinc-800">
-      <h2 className="text-lg font-semibold">{court.name}</h2>
+    <li className="rounded-xl border border-brand-red/30 p-5">
+      <h2 className="font-heading text-xl">{court.name}</h2>
       <p className="text-sm text-zinc-500">{court.sportType}</p>
       <p className="mt-3 font-medium">
         ${Number(court.pricePerHour).toLocaleString("es-CO")} / hora
@@ -90,7 +90,7 @@ export default function CourtCard({ court }: { court: Court }) {
       <button
         type="button"
         onClick={handleReservarClick}
-        className="mt-4 w-full rounded-full bg-emerald-700 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-emerald-800"
+        className="mt-4 w-full rounded-full bg-brand-red px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-red/85"
       >
         Reservar
       </button>
@@ -100,21 +100,21 @@ export default function CourtCard({ court }: { court: Court }) {
           <div className="w-full max-w-sm rounded-xl bg-white p-6 dark:bg-zinc-900">
             {success ? (
               <div className="space-y-4">
-                <h3 className="text-lg font-semibold">¡Reserva confirmada!</h3>
+                <h3 className="font-heading text-xl">¡Reserva confirmada!</h3>
                 <p className="text-sm text-zinc-500">
                   Tu reserva para {court.name} quedó registrada.
                 </p>
                 <button
                   type="button"
                   onClick={resetAndClose}
-                  className="w-full rounded-full bg-emerald-700 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-emerald-800"
+                  className="w-full rounded-full bg-brand-red px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-red/85"
                 >
                   Cerrar
                 </button>
               </div>
             ) : (
               <form onSubmit={handleSubmit} className="space-y-4">
-                <h3 className="text-lg font-semibold">Reservar {court.name}</h3>
+                <h3 className="font-heading text-xl">Reservar {court.name}</h3>
 
                 <div className="space-y-1">
                   <label htmlFor="date" className="text-sm font-medium">
@@ -195,7 +195,7 @@ export default function CourtCard({ court }: { court: Court }) {
                   <button
                     type="submit"
                     disabled={loading}
-                    className="w-full rounded-full bg-emerald-700 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-emerald-800 disabled:opacity-60"
+                    className="w-full rounded-full bg-brand-red px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-red/85 disabled:opacity-60"
                   >
                     {loading ? "Reservando..." : "Confirmar"}
                   </button>
