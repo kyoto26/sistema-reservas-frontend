@@ -1,36 +1,101 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Sistema de Reservas
 
-## Getting Started
+Sistema de reservas de canchas deportivas (fútbol 5/6/8/11), full-stack. Un
+usuario ve la disponibilidad, reserva un horario, elige color de petos para
+su equipo y paga (simulado); puede reagendar o cancelar después. Un admin
+gestiona el catálogo de canchas y tiene visibilidad de todas las reservas
+del sistema.
 
-First, run the development server:
+Este repositorio es el **frontend**. El backend vive en un repositorio
+separado, `sistema-reservas-backend`.
+
+## Stack técnico
+
+- **Frontend** (este repo): Next.js 16 (App Router) + React 19 +
+  TypeScript + Tailwind CSS v4.
+- **Backend** (repo separado): NestJS 11 + TypeORM + PostgreSQL 16,
+  autenticación JWT, DTOs validados con `class-validator`, rate limiting
+  con `@nestjs/throttler`, build Docker multi-stage.
+
+## Cómo levantarlo localmente
+
+### Frontend (este repo)
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+npm run dev   # http://localhost:3001
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Necesita `NEXT_PUBLIC_API_URL` apuntando al backend corriendo (si no se
+define, usa `http://localhost:3000` por default).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Backend (repo separado)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+**Opción A — Docker (recomendado):**
 
-## Learn More
+```bash
+docker compose up --build
+# levanta Postgres (host :5433) + backend (:3000)
 
-To learn more about Next.js, take a look at the following resources:
+docker compose exec backend node dist/seed.js
+# carga el catálogo real de canchas — idempotente, no duplica si ya corrió
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+**Opción B — Node directo**, con un Postgres propio ya corriendo:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```bash
+npm install
+npm run start:dev
+npm run seed   # carga el catálogo de canchas
+```
 
-## Deploy on Vercel
+Variables de entorno requeridas en el backend (`.env`, no versionado):
+`DB_HOST`, `DB_PORT`, `DB_USERNAME`, `DB_PASSWORD`, `DB_NAME`, `JWT_SECRET`,
+`JWT_EXPIRES_IN`, opcional `PORT` (default `3000`).
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Features implementadas
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Autenticación con JWT (login, `GET /auth/me`); passwords hasheadas con
+  bcrypt en el backend.
+- Roles `client`/`admin` con autorización real aplicada en el backend
+  (guards + chequeo de dueño en cada operación) — no es solo ocultar
+  botones en la UI, un request directo sin permisos se rechaza igual.
+- Reservas con lock de concurrencia por cancha en el backend (advisory
+  lock de Postgres) para que dos requests simultáneos no dupliquen un
+  horario, elección de color de petos, pago simulado, reagendado y
+  cancelación.
+- Historial de reservas propio (`/mis-reservas`) y panel admin
+  (`/admin`) con vista global de reservas y CRUD de canchas.
+- Recuperación de contraseña vía API (`/auth/forgot-password` +
+  `/auth/reset-password`) — el flujo de backend está completo, todavía sin
+  pantalla en este frontend (ver Roadmap).
+- Rate limiting (5 intentos / 60s por IP) en el login del backend para
+  mitigar fuerza bruta de contraseñas.
+- Diseño responsive: grid de canchas adaptable (1/2/3 columnas según
+  ancho), formularios y header que se ajustan a mobile.
+- Identidad visual propia: paleta rojo/negro (`brand-red` / `brand-black`),
+  tipografía dedicada para headings (Ma Shan Zheng) y cuerpo (Space
+  Grotesk), diagramas de cancha a escala real por tipo de fútbol.
+
+## Roadmap (mejoras no implementadas a propósito)
+
+- Pantalla de recuperación de contraseña en este frontend (el backend ya
+  soporta el flujo completo).
+- Migraciones formales de base de datos en el backend (hoy
+  `synchronize: true` de TypeORM).
+- Tests automatizados (Jest) — unit y e2e, en ambos repos.
+- WebSockets / actualizaciones en tiempo real.
+- Canchas favoritas.
+- Notificaciones (email/push) — el reset de contraseña hoy devuelve el
+  token directo en la respuesta de la API en vez de enviarlo por email.
+- Modo oscuro/claro con toggle manual (hoy solo se sigue
+  `prefers-color-scheme` del sistema operativo).
+- Filtros de búsqueda de canchas (tipo, precio, horario).
+- Duración mínima/máxima de reservas: el backend solo valida formato ISO
+  y que `startTime < endTime`, sin acotar cuán corta/larga puede ser una
+  reserva ni impedir fechas en el pasado.
+- Pruebas Gherkin/BDD.
+- Pruebas de mutación.
+- Serialización centralizada de entidades con `class-transformer` en el
+  backend — hoy el scrub de campos sensibles se hace a mano, campo por
+  campo.
