@@ -1,6 +1,5 @@
 import { getCourts } from "@/lib/api";
-import { groupCourtsByType } from "@/lib/courtTypes";
-import CourtCard from "./_components/CourtCard";
+import CourtsBrowser from "./_components/CourtsBrowser";
 
 export default async function Home() {
   let courts: Awaited<ReturnType<typeof getCourts>> = [];
@@ -12,37 +11,10 @@ export default async function Home() {
     error = true;
   }
 
-  const groups = groupCourtsByType(courts);
-
   return (
     <main className="flex-1 px-6 py-10">
       <h1 className="text-2xl font-semibold">Canchas disponibles</h1>
-
-      {error && (
-        <p className="mt-6 text-zinc-500">
-          No se pudieron cargar las canchas. Intentá de nuevo más tarde.
-        </p>
-      )}
-
-      {!error && courts.length === 0 && (
-        <p className="mt-6 text-zinc-500">
-          No hay canchas disponibles por el momento.
-        </p>
-      )}
-
-      {!error && courts.length > 0 && (
-        <ul className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {groups.map((group) => (
-            <CourtCard
-              key={group.sportType}
-              typeLabel={group.info.label}
-              lengthM={group.info.lengthM}
-              widthM={group.info.widthM}
-              courts={group.courts}
-            />
-          ))}
-        </ul>
-      )}
+      <CourtsBrowser initialCourts={courts} initialError={error} />
     </main>
   );
 }

@@ -7,8 +7,19 @@ export type Court = {
   pricePerHour: string;
 };
 
-export async function getCourts(): Promise<Court[]> {
-  const res = await fetch(`${API_URL}/courts`, { cache: "no-store" });
+export async function getCourts(params?: {
+  startTime?: string;
+  endTime?: string;
+}): Promise<Court[]> {
+  const query =
+    params?.startTime && params?.endTime
+      ? `?${new URLSearchParams({
+          startTime: params.startTime,
+          endTime: params.endTime,
+        })}`
+      : "";
+
+  const res = await fetch(`${API_URL}/courts${query}`, { cache: "no-store" });
 
   if (!res.ok) {
     throw new Error("No se pudieron cargar las canchas");

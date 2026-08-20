@@ -256,7 +256,7 @@ export default function MisReservasPage() {
                         type="button"
                         onClick={() => handlePay(reservation.id)}
                         disabled={actionLoadingId === reservation.id}
-                        className="rounded-full bg-brand-red px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-red/85 disabled:opacity-60"
+                        className="rounded-full bg-brand-violet px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-violet/85 disabled:opacity-60"
                       >
                         {actionLoadingId === reservation.id ? "Pagando..." : "Pagar"}
                       </button>
@@ -351,7 +351,7 @@ export default function MisReservasPage() {
                 <button
                   type="submit"
                   disabled={rescheduleLoading}
-                  className="w-full rounded-full bg-brand-red px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-red/85 disabled:opacity-60"
+                  className="w-full rounded-full bg-brand-violet px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-violet/85 disabled:opacity-60"
                 >
                   {rescheduleLoading ? "Guardando..." : "Confirmar"}
                 </button>

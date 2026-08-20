@@ -95,7 +95,7 @@ export default function CourtCard({
   }
 
   return (
-    <li className="overflow-hidden rounded-xl border border-brand-red/30">
+    <li className="overflow-hidden rounded-xl border border-brand-violet/30">
       <PitchDiagram lengthM={lengthM} widthM={widthM} className="block w-full" />
 
       <div className="p-5">
@@ -113,7 +113,7 @@ export default function CourtCard({
                 onClick={() => setSelectedIndex(i)}
                 className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
                   i === selectedIndex
-                    ? "bg-brand-red text-white"
+                    ? "bg-brand-violet text-white"
                     : "border border-zinc-700 text-zinc-300 hover:bg-white/10"
                 }`}
               >
@@ -126,7 +126,7 @@ export default function CourtCard({
         <button
           type="button"
           onClick={handleReservarClick}
-          className="mt-4 w-full rounded-full bg-brand-red px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-red/85"
+          className="mt-4 w-full rounded-full bg-brand-violet px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-violet/85"
         >
           Reservar
         </button>
@@ -144,7 +144,7 @@ export default function CourtCard({
                 <button
                   type="button"
                   onClick={resetAndClose}
-                  className="w-full rounded-full bg-brand-red px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-red/85"
+                  className="w-full rounded-full bg-brand-violet px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-violet/85"
                 >
                   Cerrar
                 </button>
@@ -232,7 +232,7 @@ export default function CourtCard({
                   <button
                     type="submit"
                     disabled={loading}
-                    className="w-full rounded-full bg-brand-red px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-red/85 disabled:opacity-60"
+                    className="w-full rounded-full bg-brand-violet px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-violet/85 disabled:opacity-60"
                   >
                     {loading ? "Reservando..." : "Confirmar"}
                   </button>

@@ -75,7 +75,7 @@ export default function PitchDiagram({
         <circle cx={x0 + w - penaltyDist} cy={cy} r="1.6" />
       </g>
 
-      <g stroke="#e10600" strokeOpacity="0.55" strokeWidth="2.4">
+      <g stroke="#9d4edd" strokeOpacity="0.55" strokeWidth="2.4">
         <line x1={x0} y1={cy - goalWidth / 2} x2={x0} y2={cy + goalWidth / 2} />
         <line x1={x0 + w} y1={cy - goalWidth / 2} x2={x0 + w} y2={cy + goalWidth / 2} />
       </g>

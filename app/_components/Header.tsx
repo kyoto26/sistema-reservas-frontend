@@ -28,7 +28,7 @@ export default function Header() {
   }
 
   return (
-    <header className="flex items-center justify-between border-b border-brand-red/30 bg-brand-black px-6 py-4">
+    <header className="flex items-center justify-between border-b border-brand-violet/30 bg-brand-black px-6 py-4">
       <Link href="/" className="font-heading text-2xl text-white">
         Sistema de Reservas
       </Link>
@@ -67,7 +67,7 @@ export default function Header() {
             </Link>
             <Link
               href="/registro"
-              className="rounded-full bg-brand-red px-4 py-2 text-white transition-colors hover:bg-brand-red/85"
+              className="rounded-full bg-brand-violet px-4 py-2 text-white transition-colors hover:bg-brand-violet/85"
             >
               Registrarse
             </Link>
