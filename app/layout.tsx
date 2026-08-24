@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import { Ma_Shan_Zheng, Space_Grotesk } from "next/font/google";
 import Header from "./_components/Header";
+import { LanguageProvider } from "@/lib/i18n/LanguageContext";
+import { getServerLanguage } from "@/lib/i18n/getServerLanguage";
+import { dictionaries } from "@/lib/i18n/translations";
 import "./globals.css";
 
 const maShanZheng = Ma_Shan_Zheng({
@@ -14,20 +17,28 @@ const spaceGrotesk = Space_Grotesk({
   subsets: ["latin"],
 });
 
-export const metadata: Metadata = {
-  title: "Sistema de Reservas",
-  description: "Reservá canchas en línea",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const language = await getServerLanguage();
+  const dict = dictionaries[language];
+  return {
+    title: dict.meta.title,
+    description: dict.meta.description,
+  };
+}
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default async function RootLayout({ children }: LayoutProps<"/">) {
+  const language = await getServerLanguage();
+
   return (
     <html
-      lang="en"
+      lang={language}
       className={`${maShanZheng.variable} ${spaceGrotesk.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-        <Header />
-        {children}
+        <LanguageProvider initialLanguage={language}>
+          <Header />
+          {children}
+        </LanguageProvider>
       </body>
     </html>
   );

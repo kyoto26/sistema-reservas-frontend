@@ -12,18 +12,9 @@ import {
   UnauthorizedError,
   type Reservation,
 } from "@/lib/api";
-import { STATUS_LABEL, formatRange } from "@/lib/format";
-
-const PETOS_LABEL: Record<string, string> = {
-  none: "Sin petos",
-  red: "Rojo",
-  blue: "Azul",
-};
-
-const PAYMENT_LABEL: Record<string, string> = {
-  pending: "Pendiente",
-  paid: "Pagado",
-};
+import { formatRange } from "@/lib/format";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
+import { getErrorMessage } from "@/lib/i18n/getErrorMessage";
 
 function getServerSnapshot() {
   return false;
@@ -44,6 +35,7 @@ function toTimeInputValue(d: Date) {
 
 export default function MisReservasPage() {
   const router = useRouter();
+  const { language, dict } = useLanguage();
   const loggedIn = useSyncExternalStore(
     subscribeToAuthChanges,
     isLoggedIn,
@@ -72,11 +64,9 @@ export default function MisReservasPage() {
         router.replace("/login");
         return;
       }
-      setLoadError(
-        err instanceof Error ? err.message : "No se pudieron cargar tus reservas",
-      );
+      setLoadError(getErrorMessage(err, dict, dict.myReservations.error.load));
     }
-  }, [router]);
+  }, [router, dict]);
 
   useEffect(() => {
     if (!loggedIn) {
@@ -98,16 +88,14 @@ export default function MisReservasPage() {
           router.replace("/login");
           return;
         }
-        setLoadError(
-          err instanceof Error ? err.message : "No se pudieron cargar tus reservas",
-        );
+        setLoadError(getErrorMessage(err, dict, dict.myReservations.error.load));
       }
     })();
 
     return () => {
       cancelled = true;
     };
-  }, [loggedIn, router]);
+  }, [loggedIn, router, dict]);
 
   async function handleCancel(id: string) {
     setActionLoadingId(id);
@@ -123,7 +111,7 @@ export default function MisReservasPage() {
       }
       setRowError({
         id,
-        message: err instanceof Error ? err.message : "No se pudo cancelar la reserva",
+        message: getErrorMessage(err, dict, dict.myReservations.error.cancel),
       });
     } finally {
       setActionLoadingId(null);
@@ -144,7 +132,7 @@ export default function MisReservasPage() {
       }
       setRowError({
         id,
-        message: err instanceof Error ? err.message : "No se pudo procesar el pago",
+        message: getErrorMessage(err, dict, dict.myReservations.error.pay),
       });
     } finally {
       setActionLoadingId(null);
@@ -175,7 +163,7 @@ export default function MisReservasPage() {
     const end = new Date(`${date}T${endTime}`);
 
     if (start >= end) {
-      setRescheduleError("La hora de inicio debe ser anterior a la hora de fin");
+      setRescheduleError(dict.common.errors.startBeforeEnd);
       return;
     }
 
@@ -194,9 +182,7 @@ export default function MisReservasPage() {
         router.replace("/login");
         return;
       }
-      setRescheduleError(
-        err instanceof Error ? err.message : "No se pudo reagendar la reserva",
-      );
+      setRescheduleError(getErrorMessage(err, dict, dict.myReservations.error.reschedule));
     } finally {
       setRescheduleLoading(false);
     }
@@ -204,16 +190,16 @@ export default function MisReservasPage() {
 
   return (
     <main className="flex-1 px-6 py-10">
-      <h1 className="text-2xl font-semibold">Mis reservas</h1>
+      <h1 className="text-2xl font-semibold">{dict.myReservations.title}</h1>
 
       {loadError && <p className="mt-6 text-sm text-red-600">{loadError}</p>}
 
       {!loadError && reservations === null && (
-        <p className="mt-6 text-zinc-500">Cargando tus reservas...</p>
+        <p className="mt-6 text-zinc-500">{dict.myReservations.loading}</p>
       )}
 
       {!loadError && reservations !== null && reservations.length === 0 && (
-        <p className="mt-6 text-zinc-500">Todavía no tenés reservas.</p>
+        <p className="mt-6 text-zinc-500">{dict.myReservations.empty}</p>
       )}
 
       {!loadError && reservations !== null && reservations.length > 0 && (
@@ -227,19 +213,23 @@ export default function MisReservasPage() {
                 <div>
                   <h2 className="text-lg font-semibold">{reservation.court.name}</h2>
                   <p className="text-sm text-zinc-500">
-                    {formatRange(reservation.startTime, reservation.endTime)}
+                    {formatRange(reservation.startTime, reservation.endTime, language)}
                   </p>
                 </div>
 
                 <div className="flex flex-wrap gap-2 text-xs font-medium">
                   <span className="rounded-full bg-zinc-100 px-3 py-1 dark:bg-zinc-800">
-                    {STATUS_LABEL[reservation.status] ?? reservation.status}
+                    {dict.status[reservation.status as keyof typeof dict.status] ??
+                      reservation.status}
                   </span>
                   <span className="rounded-full bg-zinc-100 px-3 py-1 dark:bg-zinc-800">
-                    {PETOS_LABEL[reservation.petosColor] ?? reservation.petosColor}
+                    {dict.petosLabel[reservation.petosColor as keyof typeof dict.petosLabel] ??
+                      reservation.petosColor}
                   </span>
                   <span className="rounded-full bg-zinc-100 px-3 py-1 dark:bg-zinc-800">
-                    {PAYMENT_LABEL[reservation.paymentStatus] ?? reservation.paymentStatus}
+                    {dict.paymentLabel[
+                      reservation.paymentStatus as keyof typeof dict.paymentLabel
+                    ] ?? reservation.paymentStatus}
                   </span>
                 </div>
               </div>
@@ -258,7 +248,9 @@ export default function MisReservasPage() {
                         disabled={actionLoadingId === reservation.id}
                         className="rounded-full bg-brand-violet px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-violet/85 disabled:opacity-60"
                       >
-                        {actionLoadingId === reservation.id ? "Pagando..." : "Pagar"}
+                        {actionLoadingId === reservation.id
+                          ? dict.myReservations.pay.loading
+                          : dict.myReservations.pay.idle}
                       </button>
                     )}
                   <button
@@ -267,7 +259,7 @@ export default function MisReservasPage() {
                     disabled={actionLoadingId === reservation.id}
                     className="rounded-full border border-zinc-300 px-4 py-2 text-sm font-medium transition-colors hover:bg-zinc-100 disabled:opacity-60 dark:border-zinc-700 dark:hover:bg-zinc-800"
                   >
-                    Reagendar
+                    {dict.myReservations.rescheduleButton}
                   </button>
                   <button
                     type="button"
@@ -275,7 +267,9 @@ export default function MisReservasPage() {
                     disabled={actionLoadingId === reservation.id}
                     className="rounded-full border border-red-300 px-4 py-2 text-sm font-medium text-red-600 transition-colors hover:bg-red-50 disabled:opacity-60 dark:border-red-900 dark:hover:bg-red-950"
                   >
-                    {actionLoadingId === reservation.id ? "Cancelando..." : "Cancelar"}
+                    {actionLoadingId === reservation.id
+                      ? dict.myReservations.cancel.loading
+                      : dict.myReservations.cancel.idle}
                   </button>
                 </div>
               )}
@@ -289,12 +283,12 @@ export default function MisReservasPage() {
           <div className="w-full max-w-sm rounded-xl bg-white p-6 dark:bg-zinc-900">
             <form onSubmit={handleRescheduleSubmit} className="space-y-4">
               <h3 className="text-lg font-semibold">
-                Reagendar {rescheduleTarget.court.name}
+                {dict.rescheduleModal.title(rescheduleTarget.court.name)}
               </h3>
 
               <div className="space-y-1">
                 <label htmlFor="reschedule-date" className="text-sm font-medium">
-                  Fecha
+                  {dict.rescheduleModal.date.label}
                 </label>
                 <input
                   id="reschedule-date"
@@ -309,7 +303,7 @@ export default function MisReservasPage() {
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
                   <label htmlFor="reschedule-start" className="text-sm font-medium">
-                    Desde
+                    {dict.rescheduleModal.from.label}
                   </label>
                   <input
                     id="reschedule-start"
@@ -323,7 +317,7 @@ export default function MisReservasPage() {
 
                 <div className="space-y-1">
                   <label htmlFor="reschedule-end" className="text-sm font-medium">
-                    Hasta
+                    {dict.rescheduleModal.to.label}
                   </label>
                   <input
                     id="reschedule-end"
@@ -346,14 +340,16 @@ export default function MisReservasPage() {
                   onClick={closeReschedule}
                   className="w-full rounded-full border border-zinc-300 px-4 py-2 text-sm font-medium transition-colors hover:bg-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-800"
                 >
-                  Cancelar
+                  {dict.rescheduleModal.cancel}
                 </button>
                 <button
                   type="submit"
                   disabled={rescheduleLoading}
                   className="w-full rounded-full bg-brand-violet px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-violet/85 disabled:opacity-60"
                 >
-                  {rescheduleLoading ? "Guardando..." : "Confirmar"}
+                  {rescheduleLoading
+                    ? dict.rescheduleModal.confirm.loading
+                    : dict.rescheduleModal.confirm.idle}
                 </button>
               </div>
             </form>

@@ -4,10 +4,13 @@ import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { login } from "@/lib/api";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
+import { getErrorMessage } from "@/lib/i18n/getErrorMessage";
 import SoccerVideo from "../_components/SoccerVideo";
 
 export default function LoginPage() {
   const router = useRouter();
+  const { dict } = useLanguage();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -22,8 +25,8 @@ export default function LoginPage() {
       await login(email, password);
       router.push("/");
       router.refresh();
-    } catch {
-      setError("Email o contraseña incorrectos");
+    } catch (err) {
+      setError(getErrorMessage(err, dict, dict.login.error.invalidCredentials));
     } finally {
       setLoading(false);
     }
@@ -33,11 +36,11 @@ export default function LoginPage() {
     <main className="flex flex-1 items-center justify-center gap-8 bg-brand-black px-6 py-16 text-white">
       <div className="flex flex-col items-center justify-center">
         <form onSubmit={handleSubmit} className="w-full max-w-sm space-y-4">
-          <h1 className="text-2xl font-semibold">Iniciar sesión</h1>
+          <h1 className="text-2xl font-semibold">{dict.login.title}</h1>
 
           <div className="space-y-1">
             <label htmlFor="email" className="text-sm font-medium">
-              Email
+              {dict.login.email.label}
             </label>
             <input
               id="email"
@@ -51,7 +54,7 @@ export default function LoginPage() {
 
           <div className="space-y-1">
             <label htmlFor="password" className="text-sm font-medium">
-              Contraseña
+              {dict.login.password.label}
             </label>
             <input
               id="password"
@@ -70,13 +73,13 @@ export default function LoginPage() {
             disabled={loading}
             className="w-full rounded-full bg-brand-violet px-5 py-2.5 font-medium text-white transition-colors hover:bg-brand-violet/85 disabled:opacity-60"
           >
-            {loading ? "Ingresando..." : "Ingresar"}
+            {loading ? dict.login.submit.loading : dict.login.submit.idle}
           </button>
 
           <p className="text-center text-sm text-zinc-500">
-            ¿No tenés cuenta?{" "}
+            {dict.login.noAccount}{" "}
             <Link href="/registro" className="font-medium text-brand-violet">
-              Registrate
+              {dict.login.registerLink}
             </Link>
           </p>
         </form>

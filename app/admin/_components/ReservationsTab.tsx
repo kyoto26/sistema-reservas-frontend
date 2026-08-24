@@ -9,10 +9,13 @@ import {
   UnauthorizedError,
   type AdminReservation,
 } from "@/lib/api";
-import { STATUS_LABEL, formatRange } from "@/lib/format";
+import { formatRange } from "@/lib/format";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
+import { getErrorMessage } from "@/lib/i18n/getErrorMessage";
 
 export default function ReservationsTab() {
   const router = useRouter();
+  const { language, dict } = useLanguage();
   const [reservations, setReservations] = useState<AdminReservation[] | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [actionLoadingId, setActionLoadingId] = useState<string | null>(null);
@@ -28,11 +31,9 @@ export default function ReservationsTab() {
         router.replace("/");
         return;
       }
-      setLoadError(
-        err instanceof Error ? err.message : "No se pudieron cargar las reservas",
-      );
+      setLoadError(getErrorMessage(err, dict, dict.adminReservations.error.load));
     }
-  }, [router]);
+  }, [router, dict]);
 
   useEffect(() => {
     let cancelled = false;
@@ -49,16 +50,14 @@ export default function ReservationsTab() {
           router.replace("/");
           return;
         }
-        setLoadError(
-          err instanceof Error ? err.message : "No se pudieron cargar las reservas",
-        );
+        setLoadError(getErrorMessage(err, dict, dict.adminReservations.error.load));
       }
     })();
 
     return () => {
       cancelled = true;
     };
-  }, [router]);
+  }, [router, dict]);
 
   async function handleCancel(id: string) {
     setActionLoadingId(id);
@@ -74,7 +73,7 @@ export default function ReservationsTab() {
       }
       setRowError({
         id,
-        message: err instanceof Error ? err.message : "No se pudo cancelar la reserva",
+        message: getErrorMessage(err, dict, dict.adminReservations.error.cancel),
       });
     } finally {
       setActionLoadingId(null);
@@ -86,11 +85,11 @@ export default function ReservationsTab() {
       {loadError && <p className="mt-6 text-sm text-red-600">{loadError}</p>}
 
       {!loadError && reservations === null && (
-        <p className="mt-6 text-zinc-500">Cargando reservas...</p>
+        <p className="mt-6 text-zinc-500">{dict.adminReservations.loading}</p>
       )}
 
       {!loadError && reservations !== null && reservations.length === 0 && (
-        <p className="mt-6 text-zinc-500">No hay reservas registradas.</p>
+        <p className="mt-6 text-zinc-500">{dict.adminReservations.empty}</p>
       )}
 
       {!loadError && reservations !== null && reservations.length > 0 && (
@@ -107,12 +106,13 @@ export default function ReservationsTab() {
                     {reservation.user.name} · {reservation.user.email}
                   </p>
                   <p className="text-sm text-zinc-500">
-                    {formatRange(reservation.startTime, reservation.endTime)}
+                    {formatRange(reservation.startTime, reservation.endTime, language)}
                   </p>
                 </div>
 
                 <span className="rounded-full bg-zinc-100 px-3 py-1 text-xs font-medium dark:bg-zinc-800">
-                  {STATUS_LABEL[reservation.status] ?? reservation.status}
+                  {dict.status[reservation.status as keyof typeof dict.status] ??
+                    reservation.status}
                 </span>
               </div>
 
@@ -128,7 +128,9 @@ export default function ReservationsTab() {
                     disabled={actionLoadingId === reservation.id}
                     className="rounded-full border border-red-300 px-4 py-2 text-sm font-medium text-red-600 transition-colors hover:bg-red-50 disabled:opacity-60 dark:border-red-900 dark:hover:bg-red-950"
                   >
-                    {actionLoadingId === reservation.id ? "Cancelando..." : "Cancelar"}
+                    {actionLoadingId === reservation.id
+                      ? dict.adminReservations.cancel.loading
+                      : dict.adminReservations.cancel.idle}
                   </button>
                 </div>
               )}

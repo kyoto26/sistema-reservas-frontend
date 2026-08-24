@@ -4,10 +4,13 @@ import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { login, register } from "@/lib/api";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
+import { getErrorMessage } from "@/lib/i18n/getErrorMessage";
 import SoccerVideo from "../_components/SoccerVideo";
 
 export default function RegistroPage() {
   const router = useRouter();
+  const { dict } = useLanguage();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -25,9 +28,7 @@ export default function RegistroPage() {
       router.push("/");
       router.refresh();
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "No se pudo completar el registro",
-      );
+      setError(getErrorMessage(err, dict, dict.register.error.default));
     } finally {
       setLoading(false);
     }
@@ -37,11 +38,11 @@ export default function RegistroPage() {
     <main className="flex flex-1 items-center justify-center gap-8 bg-brand-black px-6 py-16 text-white">
       <div className="flex flex-col items-center justify-center">
         <form onSubmit={handleSubmit} className="w-full max-w-sm space-y-4">
-          <h1 className="text-2xl font-semibold">Registrarse</h1>
+          <h1 className="text-2xl font-semibold">{dict.register.title}</h1>
 
           <div className="space-y-1">
             <label htmlFor="name" className="text-sm font-medium">
-              Nombre
+              {dict.register.name.label}
             </label>
             <input
               id="name"
@@ -55,7 +56,7 @@ export default function RegistroPage() {
 
           <div className="space-y-1">
             <label htmlFor="email" className="text-sm font-medium">
-              Email
+              {dict.register.email.label}
             </label>
             <input
               id="email"
@@ -69,7 +70,7 @@ export default function RegistroPage() {
 
           <div className="space-y-1">
             <label htmlFor="password" className="text-sm font-medium">
-              Contraseña
+              {dict.register.password.label}
             </label>
             <input
               id="password"
@@ -89,13 +90,13 @@ export default function RegistroPage() {
             disabled={loading}
             className="w-full rounded-full bg-brand-violet px-5 py-2.5 font-medium text-white transition-colors hover:bg-brand-violet/85 disabled:opacity-60"
           >
-            {loading ? "Registrando..." : "Registrarse"}
+            {loading ? dict.register.submit.loading : dict.register.submit.idle}
           </button>
 
           <p className="text-center text-sm text-zinc-500">
-            ¿Ya tenés cuenta?{" "}
+            {dict.register.hasAccount}{" "}
             <Link href="/login" className="font-medium text-brand-violet">
-              Iniciá sesión
+              {dict.register.loginLink}
             </Link>
           </p>
         </form>

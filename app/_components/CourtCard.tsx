@@ -9,26 +9,30 @@ import {
   type Court,
 } from "@/lib/api";
 import { instanceLabel } from "@/lib/courtTypes";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
+import { getErrorMessage } from "@/lib/i18n/getErrorMessage";
 import PitchDiagram from "./PitchDiagram";
 
-const PETOS_OPTIONS = [
-  { value: "none", label: "Sin petos" },
-  { value: "red", label: "Petos rojos" },
-  { value: "blue", label: "Petos azules" },
-] as const;
-
 export default function CourtCard({
+  sportType,
   typeLabel,
   lengthM,
   widthM,
   courts,
 }: {
+  sportType: string;
   typeLabel: string;
   lengthM: number;
   widthM: number;
   courts: Court[];
 }) {
   const router = useRouter();
+  const { dict } = useLanguage();
+  const PETOS_OPTIONS = [
+    { value: "none", label: dict.courtCard.petos.none },
+    { value: "red", label: dict.courtCard.petos.red },
+    { value: "blue", label: dict.courtCard.petos.blue },
+  ] as const;
   const [selectedIndex, setSelectedIndex] = useState(0);
   const court = courts[selectedIndex];
 
@@ -68,7 +72,7 @@ export default function CourtCard({
     const end = new Date(`${date}T${endTime}`);
 
     if (start >= end) {
-      setError("La hora de inicio debe ser anterior a la hora de fin");
+      setError(dict.common.errors.startBeforeEnd);
       return;
     }
 
@@ -88,7 +92,7 @@ export default function CourtCard({
         router.push("/login");
         return;
       }
-      setError(err instanceof Error ? err.message : "No se pudo crear la reserva");
+      setError(getErrorMessage(err, dict, dict.reserveModal.error.createDefault));
     } finally {
       setLoading(false);
     }
@@ -101,7 +105,7 @@ export default function CourtCard({
       <div className="p-5">
         <h2 className="font-heading text-xl">{typeLabel}</h2>
         <p className="mt-3 font-medium">
-          ${Number(court.pricePerHour).toLocaleString("es-CO")} / hora
+          ${Number(court.pricePerHour).toLocaleString("es-CO")} {dict.courtCard.priceSuffix}
         </p>
 
         {courts.length > 1 && (
@@ -117,7 +121,7 @@ export default function CourtCard({
                     : "border border-zinc-700 text-zinc-300 hover:bg-white/10"
                 }`}
               >
-                {instanceLabel(c, typeLabel, i)}
+                {instanceLabel(c, sportType, i, dict)}
               </button>
             ))}
           </div>
@@ -128,7 +132,7 @@ export default function CourtCard({
           onClick={handleReservarClick}
           className="mt-4 w-full rounded-full bg-brand-violet px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-violet/85"
         >
-          Reservar
+          {dict.courtCard.reserveButton}
         </button>
       </div>
 
@@ -137,25 +141,25 @@ export default function CourtCard({
           <div className="w-full max-w-sm rounded-xl bg-white p-6 dark:bg-zinc-900">
             {success ? (
               <div className="space-y-4">
-                <h3 className="font-heading text-xl">¡Reserva confirmada!</h3>
+                <h3 className="font-heading text-xl">{dict.reserveModal.success.title}</h3>
                 <p className="text-sm text-zinc-500">
-                  Tu reserva para {court.name} quedó registrada.
+                  {dict.reserveModal.success.body(court.name)}
                 </p>
                 <button
                   type="button"
                   onClick={resetAndClose}
                   className="w-full rounded-full bg-brand-violet px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-violet/85"
                 >
-                  Cerrar
+                  {dict.reserveModal.success.close}
                 </button>
               </div>
             ) : (
               <form onSubmit={handleSubmit} className="space-y-4">
-                <h3 className="font-heading text-xl">Reservar {court.name}</h3>
+                <h3 className="font-heading text-xl">{dict.reserveModal.title(court.name)}</h3>
 
                 <div className="space-y-1">
                   <label htmlFor="date" className="text-sm font-medium">
-                    Fecha
+                    {dict.reserveModal.date.label}
                   </label>
                   <input
                     id="date"
@@ -170,7 +174,7 @@ export default function CourtCard({
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1">
                     <label htmlFor="startTime" className="text-sm font-medium">
-                      Desde
+                      {dict.reserveModal.from.label}
                     </label>
                     <input
                       id="startTime"
@@ -184,7 +188,7 @@ export default function CourtCard({
 
                   <div className="space-y-1">
                     <label htmlFor="endTime" className="text-sm font-medium">
-                      Hasta
+                      {dict.reserveModal.to.label}
                     </label>
                     <input
                       id="endTime"
@@ -199,7 +203,7 @@ export default function CourtCard({
 
                 <div className="space-y-1">
                   <label htmlFor="petosColor" className="text-sm font-medium">
-                    Petos
+                    {dict.reserveModal.petos.label}
                   </label>
                   <select
                     id="petosColor"
@@ -227,14 +231,14 @@ export default function CourtCard({
                     onClick={resetAndClose}
                     className="w-full rounded-full border border-zinc-300 px-4 py-2 text-sm font-medium transition-colors hover:bg-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-800"
                   >
-                    Cancelar
+                    {dict.reserveModal.cancel}
                   </button>
                   <button
                     type="submit"
                     disabled={loading}
                     className="w-full rounded-full bg-brand-violet px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-violet/85 disabled:opacity-60"
                   >
-                    {loading ? "Reservando..." : "Confirmar"}
+                    {loading ? dict.reserveModal.confirm.loading : dict.reserveModal.confirm.idle}
                   </button>
                 </div>
               </form>

@@ -11,6 +11,8 @@ import {
   UnauthorizedError,
   type Court,
 } from "@/lib/api";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
+import { getErrorMessage } from "@/lib/i18n/getErrorMessage";
 
 type CourtForm = {
   name: string;
@@ -22,6 +24,7 @@ const EMPTY_FORM: CourtForm = { name: "", sportType: "", pricePerHour: "" };
 
 export default function CourtsTab() {
   const router = useRouter();
+  const { dict } = useLanguage();
   const [courts, setCourts] = useState<Court[] | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
 
@@ -40,11 +43,9 @@ export default function CourtsTab() {
       setCourts(data);
       setLoadError(null);
     } catch (err) {
-      setLoadError(
-        err instanceof Error ? err.message : "No se pudieron cargar las canchas",
-      );
+      setLoadError(getErrorMessage(err, dict, dict.adminCourts.error.load));
     }
-  }, []);
+  }, [dict]);
 
   useEffect(() => {
     let cancelled = false;
@@ -57,16 +58,14 @@ export default function CourtsTab() {
         setLoadError(null);
       } catch (err) {
         if (cancelled) return;
-        setLoadError(
-          err instanceof Error ? err.message : "No se pudieron cargar las canchas",
-        );
+        setLoadError(getErrorMessage(err, dict, dict.adminCourts.error.load));
       }
     })();
 
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [dict]);
 
   function handleAuthError(err: unknown): boolean {
     if (err instanceof UnauthorizedError || err instanceof ForbiddenError) {
@@ -82,7 +81,7 @@ export default function CourtsTab() {
 
     const pricePerHour = Number(createForm.pricePerHour);
     if (!createForm.name.trim() || !createForm.sportType.trim() || !(pricePerHour > 0)) {
-      setCreateError("Completá nombre, deporte y un precio válido");
+      setCreateError(dict.adminCourts.form.error.invalid);
       return;
     }
 
@@ -98,7 +97,7 @@ export default function CourtsTab() {
       await loadCourts();
     } catch (err) {
       if (handleAuthError(err)) return;
-      setCreateError(err instanceof Error ? err.message : "No se pudo crear la cancha");
+      setCreateError(getErrorMessage(err, dict, dict.adminCourts.error.create));
     } finally {
       setCreateLoading(false);
     }
@@ -125,7 +124,7 @@ export default function CourtsTab() {
 
     const pricePerHour = Number(editForm.pricePerHour);
     if (!editForm.name.trim() || !editForm.sportType.trim() || !(pricePerHour > 0)) {
-      setRowError({ id, message: "Completá nombre, deporte y un precio válido" });
+      setRowError({ id, message: dict.adminCourts.form.error.invalid });
       return;
     }
 
@@ -143,7 +142,7 @@ export default function CourtsTab() {
       if (handleAuthError(err)) return;
       setRowError({
         id,
-        message: err instanceof Error ? err.message : "No se pudo actualizar la cancha",
+        message: getErrorMessage(err, dict, dict.adminCourts.error.update),
       });
     } finally {
       setRowLoadingId(null);
@@ -151,7 +150,7 @@ export default function CourtsTab() {
   }
 
   async function handleDelete(court: Court) {
-    if (!window.confirm(`¿Eliminar "${court.name}"? Esta acción no se puede deshacer.`)) {
+    if (!window.confirm(dict.adminCourts.confirmDelete(court.name))) {
       return;
     }
 
@@ -165,7 +164,7 @@ export default function CourtsTab() {
       if (handleAuthError(err)) return;
       setRowError({
         id: court.id,
-        message: err instanceof Error ? err.message : "No se pudo eliminar la cancha",
+        message: getErrorMessage(err, dict, dict.adminCourts.error.delete),
       });
     } finally {
       setRowLoadingId(null);
@@ -180,7 +179,7 @@ export default function CourtsTab() {
       >
         <div className="space-y-1">
           <label htmlFor="new-name" className="text-sm font-medium">
-            Nombre
+            {dict.adminCourts.form.name.label}
           </label>
           <input
             id="new-name"
@@ -194,7 +193,7 @@ export default function CourtsTab() {
 
         <div className="space-y-1">
           <label htmlFor="new-sportType" className="text-sm font-medium">
-            Deporte
+            {dict.adminCourts.form.sportType.label}
           </label>
           <input
             id="new-sportType"
@@ -208,7 +207,7 @@ export default function CourtsTab() {
 
         <div className="space-y-1">
           <label htmlFor="new-price" className="text-sm font-medium">
-            Precio/hora
+            {dict.adminCourts.form.price.label}
           </label>
           <input
             id="new-price"
@@ -229,7 +228,7 @@ export default function CourtsTab() {
           disabled={createLoading}
           className="rounded-full bg-brand-violet px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-violet/85 disabled:opacity-60"
         >
-          {createLoading ? "Creando..." : "Crear cancha"}
+          {createLoading ? dict.adminCourts.form.submit.loading : dict.adminCourts.form.submit.idle}
         </button>
 
         {createError && <p className="w-full text-sm text-red-600">{createError}</p>}
@@ -238,11 +237,11 @@ export default function CourtsTab() {
       {loadError && <p className="mt-6 text-sm text-red-600">{loadError}</p>}
 
       {!loadError && courts === null && (
-        <p className="mt-6 text-zinc-500">Cargando canchas...</p>
+        <p className="mt-6 text-zinc-500">{dict.adminCourts.loading}</p>
       )}
 
       {!loadError && courts !== null && courts.length === 0 && (
-        <p className="mt-6 text-zinc-500">No hay canchas registradas.</p>
+        <p className="mt-6 text-zinc-500">{dict.adminCourts.empty}</p>
       )}
 
       {!loadError && courts !== null && courts.length > 0 && (
@@ -258,7 +257,9 @@ export default function CourtsTab() {
                   className="flex flex-wrap items-end gap-3"
                 >
                   <div className="space-y-1">
-                    <label className="text-sm font-medium">Nombre</label>
+                    <label className="text-sm font-medium">
+                      {dict.adminCourts.form.name.label}
+                    </label>
                     <input
                       type="text"
                       required
@@ -271,7 +272,9 @@ export default function CourtsTab() {
                   </div>
 
                   <div className="space-y-1">
-                    <label className="text-sm font-medium">Deporte</label>
+                    <label className="text-sm font-medium">
+                      {dict.adminCourts.form.sportType.label}
+                    </label>
                     <input
                       type="text"
                       required
@@ -284,7 +287,9 @@ export default function CourtsTab() {
                   </div>
 
                   <div className="space-y-1">
-                    <label className="text-sm font-medium">Precio/hora</label>
+                    <label className="text-sm font-medium">
+                      {dict.adminCourts.form.price.label}
+                    </label>
                     <input
                       type="number"
                       min="1"
@@ -303,14 +308,16 @@ export default function CourtsTab() {
                     onClick={closeEdit}
                     className="rounded-full border border-zinc-300 px-4 py-2 text-sm font-medium transition-colors hover:bg-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-800"
                   >
-                    Cancelar
+                    {dict.adminCourts.edit.cancel}
                   </button>
                   <button
                     type="submit"
                     disabled={rowLoadingId === court.id}
                     className="rounded-full bg-brand-violet px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-violet/85 disabled:opacity-60"
                   >
-                    {rowLoadingId === court.id ? "Guardando..." : "Guardar"}
+                    {rowLoadingId === court.id
+                      ? dict.adminCourts.edit.save.loading
+                      : dict.adminCourts.edit.save.idle}
                   </button>
 
                   {rowError?.id === court.id && (
@@ -323,7 +330,8 @@ export default function CourtsTab() {
                     <h2 className="text-lg font-semibold">{court.name}</h2>
                     <p className="text-sm text-zinc-500">{court.sportType}</p>
                     <p className="mt-1 font-medium">
-                      ${Number(court.pricePerHour).toLocaleString("es-CO")} / hora
+                      ${Number(court.pricePerHour).toLocaleString("es-CO")}{" "}
+                      {dict.adminCourts.row.priceSuffix}
                     </p>
                     {rowError?.id === court.id && (
                       <p className="mt-2 text-sm text-red-600">{rowError.message}</p>
@@ -337,7 +345,7 @@ export default function CourtsTab() {
                       disabled={rowLoadingId === court.id}
                       className="rounded-full border border-zinc-300 px-4 py-2 text-sm font-medium transition-colors hover:bg-zinc-100 disabled:opacity-60 dark:border-zinc-700 dark:hover:bg-zinc-800"
                     >
-                      Editar
+                      {dict.adminCourts.row.edit}
                     </button>
                     <button
                       type="button"
@@ -345,7 +353,9 @@ export default function CourtsTab() {
                       disabled={rowLoadingId === court.id}
                       className="rounded-full border border-red-300 px-4 py-2 text-sm font-medium text-red-600 transition-colors hover:bg-red-50 disabled:opacity-60 dark:border-red-900 dark:hover:bg-red-950"
                     >
-                      {rowLoadingId === court.id ? "Eliminando..." : "Eliminar"}
+                      {rowLoadingId === court.id
+                        ? dict.adminCourts.row.delete.loading
+                        : dict.adminCourts.row.delete.idle}
                     </button>
                   </div>
                 </div>

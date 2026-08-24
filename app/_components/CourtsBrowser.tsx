@@ -2,7 +2,8 @@
 
 import { useMemo, useState, type FormEvent } from "react";
 import { getCourts, type Court } from "@/lib/api";
-import { groupCourtsByType, getCourtTypeInfo } from "@/lib/courtTypes";
+import { groupCourtsByType, getCourtTypeLabel } from "@/lib/courtTypes";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 import CourtCard from "./CourtCard";
 
 const DISPLAY_ORDER = ["futbol5", "futbol6", "futbol8", "futbol11"];
@@ -26,6 +27,7 @@ export default function CourtsBrowser({
   initialCourts: Court[];
   initialError: boolean;
 }) {
+  const { dict } = useLanguage();
   const [courts, setCourts] = useState(initialCourts);
   const [error, setError] = useState(initialError);
 
@@ -65,7 +67,7 @@ export default function CourtsBrowser({
     const end = new Date(`${date}T${scheduleEnd}`);
 
     if (start >= end) {
-      setScheduleError("La hora de inicio debe ser anterior a la hora de fin");
+      setScheduleError(dict.common.errors.startBeforeEnd);
       return;
     }
 
@@ -79,7 +81,7 @@ export default function CourtsBrowser({
       setError(false);
       setScheduleApplied(true);
     } catch {
-      setScheduleError("No se pudo aplicar el filtro de horario");
+      setScheduleError(dict.filters.error.scheduleFilter);
     } finally {
       setScheduleLoading(false);
     }
@@ -105,17 +107,17 @@ export default function CourtsBrowser({
     [courts, selectedTypes, maxPrice],
   );
 
-  const groups = groupCourtsByType(filteredCourts);
+  const groups = groupCourtsByType(filteredCourts, dict);
 
   return (
     <>
       <div className="mt-6 rounded-xl border border-brand-violet/30 bg-brand-black/5 p-4 dark:bg-white/5">
         <div className="flex flex-wrap gap-6">
           <div>
-            <h2 className="text-sm font-semibold">Tipo de cancha</h2>
+            <h2 className="text-sm font-semibold">{dict.filters.courtType.heading}</h2>
             <div className="mt-2 flex flex-wrap gap-2">
               {types.map((type) => {
-                const label = getCourtTypeInfo(type).label;
+                const label = getCourtTypeLabel(type, dict);
                 const active = selectedTypes.has(type);
                 return (
                   <button
@@ -137,7 +139,7 @@ export default function CourtsBrowser({
 
           <div>
             <h2 className="text-sm font-semibold">
-              Precio máximo
+              {dict.filters.maxPrice.heading}
               {maxPrice !== null && (
                 <span className="ml-1 font-normal text-zinc-500">
                   ${maxPrice.toLocaleString("es-CO")}
@@ -151,7 +153,7 @@ export default function CourtsBrowser({
               step={1000}
               value={maxPrice ?? maxPossiblePrice}
               onChange={(e) => setMaxPrice(Number(e.target.value))}
-              aria-label="Precio máximo"
+              aria-label={dict.filters.maxPrice.ariaLabel}
               className="mt-3 w-48 accent-brand-violet"
             />
             {maxPrice !== null && (
@@ -160,7 +162,7 @@ export default function CourtsBrowser({
                 onClick={() => setMaxPrice(null)}
                 className="ml-2 text-xs text-zinc-500 underline"
               >
-                Quitar
+                {dict.filters.maxPrice.remove}
               </button>
             )}
           </div>
@@ -168,7 +170,7 @@ export default function CourtsBrowser({
           <form onSubmit={handleScheduleSubmit} className="flex flex-wrap items-end gap-2">
             <div>
               <label htmlFor="filter-date" className="block text-sm font-semibold">
-                Disponibilidad
+                {dict.filters.availability.label}
               </label>
               <input
                 id="filter-date"
@@ -182,7 +184,7 @@ export default function CourtsBrowser({
             <input
               type="time"
               required
-              aria-label="Desde"
+              aria-label={dict.filters.time.fromAriaLabel}
               value={scheduleStart}
               onChange={(e) => setScheduleStart(e.target.value)}
               className="rounded-lg border border-zinc-300 px-2 py-1 text-sm dark:border-zinc-700 dark:bg-zinc-800"
@@ -190,7 +192,7 @@ export default function CourtsBrowser({
             <input
               type="time"
               required
-              aria-label="Hasta"
+              aria-label={dict.filters.time.toAriaLabel}
               value={scheduleEnd}
               onChange={(e) => setScheduleEnd(e.target.value)}
               className="rounded-lg border border-zinc-300 px-2 py-1 text-sm dark:border-zinc-700 dark:bg-zinc-800"
@@ -200,7 +202,7 @@ export default function CourtsBrowser({
               disabled={scheduleLoading}
               className="rounded-full bg-brand-violet px-4 py-1.5 text-sm font-medium text-white transition-colors hover:bg-brand-violet/85 disabled:opacity-60"
             >
-              {scheduleLoading ? "Buscando..." : "Aplicar"}
+              {scheduleLoading ? dict.filters.apply.loading : dict.filters.apply.idle}
             </button>
             {scheduleApplied && (
               <button
@@ -208,7 +210,7 @@ export default function CourtsBrowser({
                 onClick={clearSchedule}
                 className="rounded-full border border-zinc-700 px-4 py-1.5 text-sm font-medium text-zinc-300 transition-colors hover:bg-white/10"
               >
-                Limpiar
+                {dict.filters.clear}
               </button>
             )}
           </form>
@@ -217,15 +219,11 @@ export default function CourtsBrowser({
       </div>
 
       {error && (
-        <p className="mt-6 text-zinc-500">
-          No se pudieron cargar las canchas. Intentá de nuevo más tarde.
-        </p>
+        <p className="mt-6 text-zinc-500">{dict.courts.loadError}</p>
       )}
 
       {!error && filteredCourts.length === 0 && (
-        <p className="mt-6 text-zinc-500">
-          No hay canchas disponibles con esos filtros.
-        </p>
+        <p className="mt-6 text-zinc-500">{dict.courts.emptyFiltered}</p>
       )}
 
       {!error && filteredCourts.length > 0 && (
@@ -233,6 +231,7 @@ export default function CourtsBrowser({
           {groups.map((group) => (
             <CourtCard
               key={group.sportType}
+              sportType={group.sportType}
               typeLabel={group.info.label}
               lengthM={group.info.lengthM}
               widthM={group.info.widthM}

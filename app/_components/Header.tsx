@@ -4,6 +4,8 @@ import { useSyncExternalStore } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { clearToken, isAdmin, isLoggedIn, subscribeToAuthChanges } from "@/lib/api";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
+import LanguageSwitcher from "./LanguageSwitcher";
 
 function getServerSnapshot() {
   return false;
@@ -11,6 +13,7 @@ function getServerSnapshot() {
 
 export default function Header() {
   const router = useRouter();
+  const { dict } = useLanguage();
   const loggedIn = useSyncExternalStore(
     subscribeToAuthChanges,
     isLoggedIn,
@@ -30,7 +33,7 @@ export default function Header() {
   return (
     <header className="flex items-center justify-between border-b border-brand-violet/30 bg-brand-black px-6 py-4">
       <Link href="/" className="font-heading text-2xl text-white">
-        Sistema de Reservas
+        {dict.header.brand}
       </Link>
       <nav className="flex items-center gap-3 text-sm font-medium">
         {loggedIn ? (
@@ -39,14 +42,14 @@ export default function Header() {
               href="/mis-reservas"
               className="rounded-full px-4 py-2 text-zinc-300 transition-colors hover:bg-white/10"
             >
-              Mis reservas
+              {dict.header.nav.myReservations}
             </Link>
             {admin && (
               <Link
                 href="/admin"
                 className="rounded-full px-4 py-2 text-zinc-300 transition-colors hover:bg-white/10"
               >
-                Admin
+                {dict.header.nav.admin}
               </Link>
             )}
             <button
@@ -54,7 +57,7 @@ export default function Header() {
               onClick={handleLogout}
               className="rounded-full px-4 py-2 text-zinc-300 transition-colors hover:bg-white/10"
             >
-              Cerrar sesión
+              {dict.header.nav.logout}
             </button>
           </>
         ) : (
@@ -63,16 +66,17 @@ export default function Header() {
               href="/login"
               className="rounded-full px-4 py-2 text-zinc-300 transition-colors hover:bg-white/10"
             >
-              Iniciar sesión
+              {dict.header.nav.login}
             </Link>
             <Link
               href="/registro"
               className="rounded-full bg-brand-violet px-4 py-2 text-white transition-colors hover:bg-brand-violet/85"
             >
-              Registrarse
+              {dict.header.nav.register}
             </Link>
           </>
         )}
+        <LanguageSwitcher />
       </nav>
     </header>
   );

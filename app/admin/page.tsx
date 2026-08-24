@@ -3,6 +3,7 @@
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
 import { isAdmin, subscribeToAuthChanges } from "@/lib/api";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 import ReservationsTab from "./_components/ReservationsTab";
 import CourtsTab from "./_components/CourtsTab";
 
@@ -10,18 +11,18 @@ function getServerSnapshot() {
   return false;
 }
 
-const TABS = [
-  { key: "reservations", label: "Reservas" },
-  { key: "courts", label: "Canchas" },
-] as const;
-
 export default function AdminPage() {
   const router = useRouter();
+  const { dict } = useLanguage();
   const admin = useSyncExternalStore(
     subscribeToAuthChanges,
     isAdmin,
     getServerSnapshot,
   );
+  const TABS = [
+    { key: "reservations", label: dict.admin.tabs.reservations },
+    { key: "courts", label: dict.admin.tabs.courts },
+  ] as const;
   const [tab, setTab] = useState<(typeof TABS)[number]["key"]>("reservations");
 
   useEffect(() => {
@@ -36,7 +37,7 @@ export default function AdminPage() {
 
   return (
     <main className="flex-1 px-6 py-10">
-      <h1 className="text-2xl font-semibold">Panel de administración</h1>
+      <h1 className="text-2xl font-semibold">{dict.admin.title}</h1>
 
       <div className="mt-6 flex gap-2 border-b border-zinc-200 dark:border-zinc-800">
         {TABS.map((t) => (

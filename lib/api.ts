@@ -1,5 +1,38 @@
 export const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3000";
 
+export type ApiErrorCode =
+  | "loadCourts"
+  | "invalidCredentials"
+  | "emailTaken"
+  | "registerDefault"
+  | "sessionExpired"
+  | "reservationConflict"
+  | "createReservation"
+  | "loadMyReservations"
+  | "cancelReservation"
+  | "payReservation"
+  | "rescheduleReservation"
+  | "loadAllReservations"
+  | "forbidden"
+  | "createCourt"
+  | "updateCourt"
+  | "deleteCourt"
+  | "notAuthenticated";
+
+/**
+ * Thrown for client-known error conditions. `code` maps to dict.api.error[code]
+ * so callers can render it in the current language. When the backend supplies
+ * its own `message`, we throw a plain Error with that text instead (untranslated —
+ * localizing backend-supplied text is a separate, later step).
+ */
+export class ApiError extends Error {
+  code: ApiErrorCode;
+  constructor(code: ApiErrorCode) {
+    super(code);
+    this.code = code;
+  }
+}
+
 export type Court = {
   id: string;
   name: string;
@@ -22,7 +55,7 @@ export async function getCourts(params?: {
   const res = await fetch(`${API_URL}/courts${query}`, { cache: "no-store" });
 
   if (!res.ok) {
-    throw new Error("No se pudieron cargar las canchas");
+    throw new ApiError("loadCourts");
   }
 
   return res.json();
@@ -99,7 +132,7 @@ export async function login(email: string, password: string): Promise<void> {
   });
 
   if (!res.ok) {
-    throw new Error("Email o contraseña incorrectos");
+    throw new ApiError("invalidCredentials");
   }
 
   const data: { access_token: string } = await res.json();
@@ -118,16 +151,24 @@ export async function register(
   });
 
   if (res.status === 409) {
-    throw new Error("Ya existe un usuario con ese email");
+    throw new ApiError("emailTaken");
   }
 
   if (!res.ok) {
-    throw new Error("No se pudo completar el registro");
+    throw new ApiError("registerDefault");
   }
 }
 
-export class UnauthorizedError extends Error {}
-export class ForbiddenError extends Error {}
+export class UnauthorizedError extends ApiError {
+  constructor(code: ApiErrorCode = "sessionExpired") {
+    super(code);
+  }
+}
+export class ForbiddenError extends ApiError {
+  constructor() {
+    super("forbidden");
+  }
+}
 
 export type Reservation = {
   id: string;
@@ -147,7 +188,7 @@ export async function createReservation(input: {
 }): Promise<Reservation> {
   const token = getToken();
   if (!token) {
-    throw new UnauthorizedError("No autenticado");
+    throw new UnauthorizedError("notAuthenticated");
   }
 
   const res = await fetch(`${API_URL}/reservations`, {
@@ -161,16 +202,16 @@ export async function createReservation(input: {
 
   if (res.status === 401) {
     clearToken();
-    throw new UnauthorizedError("Tu sesión expiró, iniciá sesión de nuevo");
+    throw new UnauthorizedError("sessionExpired");
   }
 
   if (res.status === 409) {
-    throw new Error("Ya existe una reserva para esa cancha en ese horario");
+    throw new ApiError("reservationConflict");
   }
 
   if (!res.ok) {
     const data: { message?: string } | null = await res.json().catch(() => null);
-    throw new Error(data?.message ?? "No se pudo crear la reserva");
+    throw data?.message ? new Error(data.message) : new ApiError("createReservation");
   }
 
   return res.json();
@@ -179,7 +220,7 @@ export async function createReservation(input: {
 export async function getMyReservations(): Promise<Reservation[]> {
   const token = getToken();
   if (!token) {
-    throw new UnauthorizedError("No autenticado");
+    throw new UnauthorizedError("notAuthenticated");
   }
 
   const res = await fetch(`${API_URL}/reservations`, {
@@ -189,11 +230,11 @@ export async function getMyReservations(): Promise<Reservation[]> {
 
   if (res.status === 401) {
     clearToken();
-    throw new UnauthorizedError("Tu sesión expiró, iniciá sesión de nuevo");
+    throw new UnauthorizedError("sessionExpired");
   }
 
   if (!res.ok) {
-    throw new Error("No se pudieron cargar tus reservas");
+    throw new ApiError("loadMyReservations");
   }
 
   return res.json();
@@ -202,7 +243,7 @@ export async function getMyReservations(): Promise<Reservation[]> {
 export async function cancelReservation(id: string): Promise<void> {
   const token = getToken();
   if (!token) {
-    throw new UnauthorizedError("No autenticado");
+    throw new UnauthorizedError("notAuthenticated");
   }
 
   const res = await fetch(`${API_URL}/reservations/${id}/cancel`, {
@@ -212,19 +253,19 @@ export async function cancelReservation(id: string): Promise<void> {
 
   if (res.status === 401) {
     clearToken();
-    throw new UnauthorizedError("Tu sesión expiró, iniciá sesión de nuevo");
+    throw new UnauthorizedError("sessionExpired");
   }
 
   if (!res.ok) {
     const data: { message?: string } | null = await res.json().catch(() => null);
-    throw new Error(data?.message ?? "No se pudo cancelar la reserva");
+    throw data?.message ? new Error(data.message) : new ApiError("cancelReservation");
   }
 }
 
 export async function payReservation(id: string): Promise<void> {
   const token = getToken();
   if (!token) {
-    throw new UnauthorizedError("No autenticado");
+    throw new UnauthorizedError("notAuthenticated");
   }
 
   const res = await fetch(`${API_URL}/reservations/${id}/pay`, {
@@ -234,12 +275,12 @@ export async function payReservation(id: string): Promise<void> {
 
   if (res.status === 401) {
     clearToken();
-    throw new UnauthorizedError("Tu sesión expiró, iniciá sesión de nuevo");
+    throw new UnauthorizedError("sessionExpired");
   }
 
   if (!res.ok) {
     const data: { message?: string } | null = await res.json().catch(() => null);
-    throw new Error(data?.message ?? "No se pudo procesar el pago");
+    throw data?.message ? new Error(data.message) : new ApiError("payReservation");
   }
 }
 
@@ -250,7 +291,7 @@ export async function rescheduleReservation(
 ): Promise<void> {
   const token = getToken();
   if (!token) {
-    throw new UnauthorizedError("No autenticado");
+    throw new UnauthorizedError("notAuthenticated");
   }
 
   const res = await fetch(`${API_URL}/reservations/${id}/reschedule`, {
@@ -264,16 +305,16 @@ export async function rescheduleReservation(
 
   if (res.status === 401) {
     clearToken();
-    throw new UnauthorizedError("Tu sesión expiró, iniciá sesión de nuevo");
+    throw new UnauthorizedError("sessionExpired");
   }
 
   if (res.status === 409) {
-    throw new Error("Ya existe una reserva para esa cancha en ese horario");
+    throw new ApiError("reservationConflict");
   }
 
   if (!res.ok) {
     const data: { message?: string } | null = await res.json().catch(() => null);
-    throw new Error(data?.message ?? "No se pudo reagendar la reserva");
+    throw data?.message ? new Error(data.message) : new ApiError("rescheduleReservation");
   }
 }
 
@@ -284,7 +325,7 @@ export type AdminReservation = Reservation & {
 export async function getAllReservations(): Promise<AdminReservation[]> {
   const token = getToken();
   if (!token) {
-    throw new UnauthorizedError("No autenticado");
+    throw new UnauthorizedError("notAuthenticated");
   }
 
   const res = await fetch(`${API_URL}/reservations/all`, {
@@ -294,15 +335,15 @@ export async function getAllReservations(): Promise<AdminReservation[]> {
 
   if (res.status === 401) {
     clearToken();
-    throw new UnauthorizedError("Tu sesión expiró, iniciá sesión de nuevo");
+    throw new UnauthorizedError("sessionExpired");
   }
 
   if (res.status === 403) {
-    throw new ForbiddenError("No tenés permisos de administrador");
+    throw new ForbiddenError();
   }
 
   if (!res.ok) {
-    throw new Error("No se pudieron cargar las reservas");
+    throw new ApiError("loadAllReservations");
   }
 
   return res.json();
@@ -315,7 +356,7 @@ export async function createCourt(input: {
 }): Promise<Court> {
   const token = getToken();
   if (!token) {
-    throw new UnauthorizedError("No autenticado");
+    throw new UnauthorizedError("notAuthenticated");
   }
 
   const res = await fetch(`${API_URL}/courts`, {
@@ -329,16 +370,16 @@ export async function createCourt(input: {
 
   if (res.status === 401) {
     clearToken();
-    throw new UnauthorizedError("Tu sesión expiró, iniciá sesión de nuevo");
+    throw new UnauthorizedError("sessionExpired");
   }
 
   if (res.status === 403) {
-    throw new ForbiddenError("No tenés permisos de administrador");
+    throw new ForbiddenError();
   }
 
   if (!res.ok) {
     const data: { message?: string } | null = await res.json().catch(() => null);
-    throw new Error(data?.message ?? "No se pudo crear la cancha");
+    throw data?.message ? new Error(data.message) : new ApiError("createCourt");
   }
 
   return res.json();
@@ -350,7 +391,7 @@ export async function updateCourt(
 ): Promise<Court> {
   const token = getToken();
   if (!token) {
-    throw new UnauthorizedError("No autenticado");
+    throw new UnauthorizedError("notAuthenticated");
   }
 
   const res = await fetch(`${API_URL}/courts/${id}`, {
@@ -364,16 +405,16 @@ export async function updateCourt(
 
   if (res.status === 401) {
     clearToken();
-    throw new UnauthorizedError("Tu sesión expiró, iniciá sesión de nuevo");
+    throw new UnauthorizedError("sessionExpired");
   }
 
   if (res.status === 403) {
-    throw new ForbiddenError("No tenés permisos de administrador");
+    throw new ForbiddenError();
   }
 
   if (!res.ok) {
     const data: { message?: string } | null = await res.json().catch(() => null);
-    throw new Error(data?.message ?? "No se pudo actualizar la cancha");
+    throw data?.message ? new Error(data.message) : new ApiError("updateCourt");
   }
 
   return res.json();
@@ -382,7 +423,7 @@ export async function updateCourt(
 export async function deleteCourt(id: string): Promise<void> {
   const token = getToken();
   if (!token) {
-    throw new UnauthorizedError("No autenticado");
+    throw new UnauthorizedError("notAuthenticated");
   }
 
   const res = await fetch(`${API_URL}/courts/${id}`, {
@@ -392,15 +433,15 @@ export async function deleteCourt(id: string): Promise<void> {
 
   if (res.status === 401) {
     clearToken();
-    throw new UnauthorizedError("Tu sesión expiró, iniciá sesión de nuevo");
+    throw new UnauthorizedError("sessionExpired");
   }
 
   if (res.status === 403) {
-    throw new ForbiddenError("No tenés permisos de administrador");
+    throw new ForbiddenError();
   }
 
   if (!res.ok) {
     const data: { message?: string } | null = await res.json().catch(() => null);
-    throw new Error(data?.message ?? "No se pudo eliminar la cancha");
+    throw data?.message ? new Error(data.message) : new ApiError("deleteCourt");
   }
 }
