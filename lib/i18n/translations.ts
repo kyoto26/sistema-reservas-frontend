@@ -190,6 +190,12 @@ const es = {
     title: "Sistema de Reservas",
     description: "Reservá canchas en línea",
   },
+  notFound: {
+    code: "404",
+    title: "Fuera de juego",
+    message: "Esta página no existe. El árbitro ya cantó offside.",
+    backButton: "Volver a la cancha",
+  },
   api: {
     error: {
       loadCourts: "No se pudieron cargar las canchas",
@@ -400,6 +406,12 @@ const en: Dictionary = {
   meta: {
     title: "Sistema de Reservas",
     description: "Book courts online",
+  },
+  notFound: {
+    code: "404",
+    title: "Offside",
+    message: "This page doesn't exist. The ref already called it.",
+    backButton: "Back to the pitch",
   },
   api: {
     error: {
