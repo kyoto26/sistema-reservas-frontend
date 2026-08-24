@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Ma_Shan_Zheng, Space_Grotesk } from "next/font/google";
 import Header from "./_components/Header";
+import Footer from "./_components/Footer";
 import { LanguageProvider } from "@/lib/i18n/LanguageContext";
 import { getServerLanguage } from "@/lib/i18n/getServerLanguage";
 import { dictionaries } from "@/lib/i18n/translations";
@@ -38,6 +39,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
         <LanguageProvider initialLanguage={language}>
           <Header />
           {children}
+          <Footer />
         </LanguageProvider>
       </body>
     </html>

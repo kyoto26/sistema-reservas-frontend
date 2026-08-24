@@ -196,6 +196,65 @@ const es = {
     message: "Esta página no existe. El árbitro ya cantó offside.",
     backButton: "Volver a la cancha",
   },
+  footer: {
+    tagline: "Proyecto de portafolio",
+    privacyLink: "Política de Privacidad",
+    termsLink: "Términos de Uso",
+  },
+  privacy: {
+    title: "Política de Privacidad",
+    sections: [
+      {
+        heading: "Sobre este proyecto",
+        body: "Sistema de Reservas es un proyecto de demostración técnica (portafolio), no un servicio comercial real. No hay una empresa detrás de esta aplicación: es un ejercicio de desarrollo full-stack pensado para mostrar habilidades técnicas. Esta política existe para ser transparente sobre qué pasa con los datos que ingresás, aunque el propósito de la app sea educativo/demostrativo.",
+      },
+      {
+        heading: "Qué datos recolectamos",
+        body: "Para que la demo funcione, guardamos tu nombre, tu email, tu contraseña (nunca en texto plano: se guarda hasheada con bcrypt, un algoritmo diseñado para que ni siquiera nosotros podamos leerla) y los datos de las reservas que hagas (cancha elegida, horario, estado de la reserva y del pago).",
+      },
+      {
+        heading: "Para qué los usamos",
+        body: "Únicamente para que la demo funcione: identificarte al iniciar sesión, mostrarte tus propias reservas, y que el panel de administración pueda gestionar el catálogo de canchas. No vendemos ni compartimos tus datos con terceros, no hacemos marketing, no armamos perfiles publicitarios.",
+      },
+      {
+        heading: "Dónde se almacenan",
+        body: "La base de datos (PostgreSQL) está alojada en Neon, un proveedor de infraestructura en la nube para bases de datos Postgres. No administramos servidores propios: usamos su plataforma como lo haría cualquier proyecto que necesite una base de datos gestionada.",
+      },
+      {
+        heading: "Persistencia de los datos",
+        body: "Como es un entorno de demostración y no un servicio permanente, los datos de prueba pueden borrarse periódicamente sin previo aviso (por ejemplo, al reiniciar la base para una nueva versión del proyecto). No uses esta app para reservas reales ni información sensible.",
+      },
+      {
+        heading: "Tus derechos",
+        body: "Podés pedir que eliminemos tu cuenta y tus datos en cualquier momento escribiendo a kyoto2617@gmail.com.",
+      },
+      {
+        heading: "Sesión y JWT",
+        body: "Al iniciar sesión se genera un token JWT que se guarda en el localStorage de tu navegador para mantenerte identificado entre páginas. Ese token no se comparte con terceros ni se usa para nada fuera de esta app.",
+      },
+    ],
+  },
+  terms: {
+    title: "Términos de Uso",
+    sections: [
+      {
+        heading: "Qué es esto",
+        body: "Este sitio es un proyecto de demostración técnica (portafolio), no un servicio comercial. Se ofrece \"tal cual\", sin garantías de disponibilidad, de que los datos mostrados sean precisos, ni de continuidad del servicio en el tiempo.",
+      },
+      {
+        heading: "Las reservas son simuladas",
+        body: "Las reservas que creás acá no representan compromisos reales con ninguna cancha física: no hay canchas de verdad esperándote. Los pagos también son simulados — no se procesa dinero real en ningún momento.",
+      },
+      {
+        heading: "Veracidad de tus datos",
+        body: "Sos responsable de la información que cargás (nombre, email, etc.). No uses datos de terceros ni información sensible real.",
+      },
+      {
+        heading: "Terminación",
+        body: "Tu cuenta y tus datos pueden eliminarse en cualquier momento sin previo aviso, como parte del mantenimiento normal de un proyecto de demostración.",
+      },
+    ],
+  },
   api: {
     error: {
       loadCourts: "No se pudieron cargar las canchas",
@@ -412,6 +471,65 @@ const en: Dictionary = {
     title: "Offside",
     message: "This page doesn't exist. The ref already called it.",
     backButton: "Back to the pitch",
+  },
+  footer: {
+    tagline: "Portfolio project",
+    privacyLink: "Privacy Policy",
+    termsLink: "Terms of Use",
+  },
+  privacy: {
+    title: "Privacy Policy",
+    sections: [
+      {
+        heading: "About this project",
+        body: "Sistema de Reservas is a technical demo project (portfolio piece), not a real commercial service. There's no company behind this app — it's a full-stack development exercise meant to showcase technical skills. This policy exists to be transparent about what happens to the data you enter, even though the app's purpose is educational/demonstrative.",
+      },
+      {
+        heading: "What data we collect",
+        body: "To make the demo work, we store your name, your email, your password (never in plain text — it's hashed with bcrypt, an algorithm designed so that not even we can read it), and your reservation data (chosen court, time slot, reservation and payment status).",
+      },
+      {
+        heading: "What we use it for",
+        body: "Only to make the demo work: identifying you on login, showing you your own reservations, and letting the admin panel manage the court catalog. We don't sell or share your data with third parties, we don't do marketing, we don't build advertising profiles.",
+      },
+      {
+        heading: "Where it's stored",
+        body: "The database (PostgreSQL) is hosted on Neon, a cloud infrastructure provider for Postgres databases. We don't run our own servers — we use their platform the way any project needing a managed database would.",
+      },
+      {
+        heading: "Data persistence",
+        body: "Since this is a demo environment, not a permanent service, test data may be wiped periodically without notice (for example, when resetting the database for a new version of the project). Don't use this app for real bookings or sensitive information.",
+      },
+      {
+        heading: "Your rights",
+        body: "You can ask us to delete your account and your data at any time by writing to kyoto2617@gmail.com.",
+      },
+      {
+        heading: "Session and JWT",
+        body: "Logging in generates a JWT token stored in your browser's localStorage to keep you identified across pages. That token isn't shared with third parties or used for anything outside this app.",
+      },
+    ],
+  },
+  terms: {
+    title: "Terms of Use",
+    sections: [
+      {
+        heading: "What this is",
+        body: "This site is a technical demo project (portfolio piece), not a commercial service. It's provided \"as is\", with no guarantees of availability, data accuracy, or continuity of service over time.",
+      },
+      {
+        heading: "Reservations are simulated",
+        body: "The reservations you create here don't represent real commitments with any physical court — there are no real courts waiting for you. Payments are also simulated — no real money is ever processed.",
+      },
+      {
+        heading: "Accuracy of your data",
+        body: "You're responsible for the information you enter (name, email, etc.). Don't use third parties' data or real sensitive information.",
+      },
+      {
+        heading: "Termination",
+        body: "Your account and data may be deleted at any time without notice, as part of normal maintenance of a demo project.",
+      },
+    ],
   },
   api: {
     error: {
