@@ -151,6 +151,7 @@ export default function CourtsBrowser({
               step={1000}
               value={maxPrice ?? maxPossiblePrice}
               onChange={(e) => setMaxPrice(Number(e.target.value))}
+              aria-label="Precio máximo"
               className="mt-3 w-48 accent-brand-violet"
             />
             {maxPrice !== null && (
