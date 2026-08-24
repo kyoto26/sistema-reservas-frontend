@@ -27,7 +27,9 @@ npm run dev   # http://localhost:3001
 ```
 
 Necesita `NEXT_PUBLIC_API_URL` apuntando al backend corriendo (si no se
-define, usa `http://localhost:3000` por default).
+define, usa `http://localhost:3000` por default). Esa misma variable
+determina también el `connect-src` permitido por la Content-Security-Policy
+(ver `next.config.ts`), así que no hace falta configurarla dos veces.
 
 ### Backend (repo separado)
 
@@ -76,6 +78,21 @@ Variables de entorno requeridas en el backend (`.env`, no versionado):
 - Identidad visual propia: paleta rojo/negro (`brand-red` / `brand-black`),
   tipografía dedicada para headings (Ma Shan Zheng) y cuerpo (Space
   Grotesk), diagramas de cancha a escala real por tipo de fútbol.
+- Selector de idioma ES/EN en el header, con Context de React + diccionario
+  tipado (`lib/i18n`, sin librerías de i18n externas) — cubre toda la UI,
+  los mensajes de error del cliente y el formato de fecha/hora; la
+  preferencia se persiste en cookie para que el servidor la lea antes del
+  primer render (sin flash de idioma).
+- Página 404 propia (`app/not-found.tsx`) con copy del dominio del
+  proyecto en vez del 404 genérico de Next, también traducida.
+- Headers de seguridad HTTP (`next.config.ts`): Content-Security-Policy,
+  `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`,
+  `Referrer-Policy: strict-origin-when-cross-origin`. El `connect-src` de
+  la CSP se deriva de `NEXT_PUBLIC_API_URL` en build time, así siempre
+  coincide con el backend real sin hardcodear el dominio.
+- Páginas de Política de Privacidad y Términos de Uso (`/privacidad`,
+  `/terminos`), enlazadas desde un footer nuevo, con copy honesto sobre
+  ser un proyecto de demo/portafolio y no una empresa real.
 
 ## Roadmap (mejoras no implementadas a propósito)
 
