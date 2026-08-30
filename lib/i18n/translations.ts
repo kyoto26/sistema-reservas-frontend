@@ -24,6 +24,10 @@ const es = {
     errors: {
       startBeforeEnd: "La hora de inicio debe ser anterior a la hora de fin",
     },
+    passwordInput: {
+      show: "Mostrar contraseña",
+      hide: "Ocultar contraseña",
+    },
   },
   landing: {
     heading: "Canchas disponibles",
@@ -299,6 +303,10 @@ const en: Dictionary = {
   common: {
     errors: {
       startBeforeEnd: "Start time must be before end time",
+    },
+    passwordInput: {
+      show: "Show password",
+      hide: "Hide password",
     },
   },
   landing: {

@@ -7,6 +7,7 @@ import { login } from "@/lib/api";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 import { getErrorMessage } from "@/lib/i18n/getErrorMessage";
 import SoccerVideo from "../_components/SoccerVideo";
+import PasswordInput from "../_components/PasswordInput";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -52,19 +53,13 @@ export default function LoginPage() {
             />
           </div>
 
-          <div className="space-y-1">
-            <label htmlFor="password" className="text-sm font-medium">
-              {dict.login.password.label}
-            </label>
-            <input
-              id="password"
-              type="password"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full rounded-lg border border-zinc-300 px-3 py-2 dark:border-zinc-700 dark:bg-zinc-900"
-            />
-          </div>
+          <PasswordInput
+            id="password"
+            label={dict.login.password.label}
+            required
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
 
           {error && <p className="text-sm text-red-600">{error}</p>}
 
